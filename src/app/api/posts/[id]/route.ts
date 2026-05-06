@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import Post from "@/models/Post";
-
+import { getUserIdFromSession } from "@/lib/auth";
 
 export async function GET(
   req: Request,
