@@ -12,6 +12,7 @@ export const translations = {
     "nav.businesses": "Businesses",
     "nav.menu": "Menu",
     "nav.settings": "Settings",
+    "nav.businessDashboard": "Business Dashboard",
     "common.back": "Back",
 
     
@@ -59,7 +60,6 @@ export const translations = {
     "cat.keys": "Keys",
     "cat.pets": "Pets",
     "cat.bags": "Bags & Luggage",
-    "cat.other": "Other",
 
     // Post Cards
     "post.lost": "LOST",
@@ -194,15 +194,6 @@ export const translations = {
     "dash.viewAll": "View All",
     "dash.noPosts": "No posts found yet.",
 
-    // Call Interface
-    "call.calling": "Calling...",
-    "call.ended": "Call Ended",
-    "call.mute": "Mute",
-    "call.video": "Video",
-    "call.speaker": "Speaker",
-    "call.end": "End Call",
-    "call.secure": "Secure Link",
-    "call.you": "You",
 
     // Categories Page Extras
     "cat.title": "Browse Categories",
@@ -260,11 +251,6 @@ export const translations = {
     "ai.placeholder": "Type your message...",
     "ai.error": "System error occurred.",
 
-    // Call
-    "call.incoming.video": "Incoming Video Call...",
-    "call.incoming.voice": "Incoming Voice Call...",
-    "call.reject": "Reject",
-    "call.answer": "Answer",
 
     // Misc
     "common.locating": "Locating...",
@@ -336,6 +322,7 @@ export const translations = {
     "nav.businesses": "Entreprises",
     "nav.menu": "Menu",
     "nav.settings": "Paramètres",
+    "nav.businessDashboard": "Tableau de bord Business",
     "common.back": "Retour",
 
     
@@ -383,7 +370,6 @@ export const translations = {
     "cat.keys": "Clés",
     "cat.pets": "Animaux",
     "cat.bags": "Sacs & Bagages",
-    "cat.other": "Autre",
 
     // Post Cards
     "post.lost": "PERDU",
@@ -518,15 +504,6 @@ export const translations = {
     "dash.viewAll": "Voir tout",
     "dash.noPosts": "Aucune publication trouvée.",
 
-    // Call Interface
-    "call.calling": "Appel en cours...",
-    "call.ended": "Appel terminé",
-    "call.mute": "Muet",
-    "call.video": "Vidéo",
-    "call.speaker": "Haut-parleur",
-    "call.end": "Raccrocher",
-    "call.secure": "Lien Sécurisé",
-    "call.you": "Vous",
 
     // Categories Page Extras
     "cat.title": "Parcourir les catégories",
@@ -583,11 +560,6 @@ export const translations = {
     "ai.placeholder": "Écrivez votre message...",
     "ai.error": "Une erreur système est survenue.",
 
-    // Call
-    "call.incoming.video": "Appel Vidéo Entrant...",
-    "call.incoming.voice": "Appel Vocal Entrant...",
-    "call.reject": "Refuser",
-    "call.answer": "Répondre",
 
     // Misc
     "common.locating": "Localisation...",
@@ -659,6 +631,7 @@ export const translations = {
     "nav.businesses": "الشركات",
     "nav.menu": "القائمة",
     "nav.settings": "الإعدادات",
+    "nav.businessDashboard": "لوحة تحكم الأعمال",
     "common.back": "عودة",
 
     
@@ -706,7 +679,6 @@ export const translations = {
     "cat.keys": "مفاتيح",
     "cat.pets": "حيوانات أليفة",
     "cat.bags": "حقائب وأمتعة",
-    "cat.other": "أخرى",
 
     // Post Cards
     "post.lost": "مفقود",
@@ -841,16 +813,6 @@ export const translations = {
     "dash.viewAll": "عرض الكل",
     "dash.noPosts": "لا توجد منشورات بعد.",
 
-    // Call Interface
-    "call.calling": "جاري الاتصال...",
-    "call.ended": "انتهت المكالمة",
-    "call.mute": "كتم",
-    "call.video": "فيديو",
-    "call.speaker": "مكبر الصوت",
-    "call.end": "إنهاء المكالمة",
-    "call.secure": "اتصال آمن",
-    "call.you": "أنت",
-
     // Categories Page Extras
     "cat.title": "تصفح التصنيفات",
     "cat.subtitle": "اختر فئة للعثور على العناصر المفقودة أو المبلغ عنها بشكل أسرع.",
@@ -906,11 +868,6 @@ export const translations = {
     "ai.placeholder": "اكتب رسالتك...",
     "ai.error": "حدث خطأ في النظام.",
 
-    // Call
-    "call.incoming.video": "مكالمة فيديو واردة...",
-    "call.incoming.voice": "مكالمة صوتية واردة...",
-    "call.reject": "رفض",
-    "call.answer": "رد",
 
     // Misc
     "common.locating": "جاري التحديد...",

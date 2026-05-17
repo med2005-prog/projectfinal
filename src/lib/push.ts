@@ -33,7 +33,7 @@ export async function sendPushNotification(userId: string, payload: { title: str
       .filter(i => i !== -1);
 
     if (failedIndices.length > 0) {
-      const newSubs = user.pushSubscriptions.filter((_, i) => !failedIndices.includes(i));
+      const newSubs = user.pushSubscriptions.filter((_: any, i: number) => !failedIndices.includes(i));
       await User.findByIdAndUpdate(userId, { pushSubscriptions: newSubs });
     }
 

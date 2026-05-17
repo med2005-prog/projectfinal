@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Mic, Square, Trash2, Play, Pause, Loader2, Send } from "lucide-react";
+import { Mic, Square, Trash2, Play, Pause, Loader2, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -16,20 +16,31 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const shouldSendRef = useRef(false);
+  const isInitializing = useRef(false);
 
   useEffect(() => {
+    if (isInitializing.current) return;
+    isInitializing.current = true;
+    
     startRecording();
     return () => {
+      isInitializing.current = false;
       if (timerRef.current) clearInterval(timerRef.current);
-      if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.stop();
-        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      if (mediaRecorderRef.current) {
+        if (mediaRecorderRef.current.state !== "inactive") {
+          mediaRecorderRef.current.stop();
+        }
+        mediaRecorderRef.current.stream.getTracks().forEach(track => {
+          track.stop();
+          track.enabled = false;
+        });
       }
     };
   }, []);
@@ -48,7 +59,17 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
   }, [isRecording]);
 
   const startRecording = async () => {
+    setError(null);
+    // Safety delay to allow browser to release hardware from previous sessions
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     try {
+      // Force stop any lingering tracks in this window
+      try {
+        const existingStreams = await navigator.mediaDevices.enumerateDevices();
+        // This is a hint to the browser to prepare
+      } catch (e) {}
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -69,9 +90,14 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error accessing microphone:", err);
-      onCancel(); // exit if no mic
+      if (err.name === "NotReadableError") {
+        setError(language === 'ar' ? "الميكروفون مشغول حالياً" : "Le micro est déjà utilisé");
+      } else {
+        setError(language === 'ar' ? "فشل الوصول إلى الميكروفون" : "Échec d'accès au micro");
+      }
+      setTimeout(() => onCancel(), 3000); 
     }
   };
 
@@ -159,6 +185,19 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
             <Send size={18} className={dir === 'rtl' ? 'mr-0.5 rotate-180' : 'ml-0.5'} />
           </button>
         </>
+      ) : error ? (
+        <div className="flex-1 flex items-center justify-between gap-2 px-2">
+           <span className="text-[10px] font-bold text-destructive animate-pulse truncate">{error}</span>
+           <button 
+             onClick={() => startRecording()} 
+             className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full hover:bg-primary/20 transition-all"
+           >
+             {language === 'ar' ? "إعادة" : "Réessayer"}
+           </button>
+           <button onClick={onCancel} className="p-1 text-muted-foreground hover:text-destructive">
+             <X size={14} />
+           </button>
+        </div>
       ) : (
         <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
            <Loader2 size={16} className="animate-spin" />

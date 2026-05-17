@@ -17,56 +17,48 @@ type PlanId = "starter" | "basic" | "standard" | "pro" | "premium";
 const PLANS = [
   {
     id: "basic" as PlanId,
-    name: { en: "Basic", fr: "Basique", ar: "الأساسي" },
-    yearlyPrice: 64,
-    monthlyPrice: "8",
+    name: { en: "Starter Boost", fr: "Starter Boost", ar: "الباقة الأساسية" },
     priceInDh: 19,
     features: {
-      en: ["500+ Views", "Basic Badge"],
-      fr: ["500+ Vues", "Badge Basique"],
-      ar: ["+500 مشاهدة", "شارة أساسية"]
+      en: ["+500 Real Views", "3-Day 'Urgent' Badge", "Frequent Search Placement"],
+      fr: ["+500 Vues Réelles", "Badge 'Urgent' 3 Jours", "Placement de recherche"],
+      ar: ["+500 مشاهدة حقيقية", "شارة 'عاجل' لمدة 3 أيام", "ظهور متكرر في البحث"]
     },
-    topBg: "bg-zinc-100",
+    topBg: "bg-blue-500/5",
   },
   {
     id: "standard" as PlanId,
-    name: { en: "Standard", fr: "Standard", ar: "القياسي" },
-    yearlyPrice: 144,
-    monthlyPrice: "15",
+    name: { en: "Silver Boost", fr: "Silver Boost", ar: "الباقة الفضية" },
     priceInDh: 39,
     features: {
-      en: ["2,000+ Views", "Top of list", '"Featured" Badge'],
-      fr: ["2,000+ Vues", "Haut de liste", 'Badge "Sponsorisé"'],
-      ar: ["+2000 مشاهدة", "قمة القائمة", 'شارة "مميز"']
+      en: ["+2000 Targeted Views", "Top of Results", "Golden 'Verified' Badge", "50 Nearby User Alerts"],
+      fr: ["+2000 Vues Ciblées", "Haut des Résultats", "Badge 'Vérifié' Doré", "50 Alertes Proximité"],
+      ar: ["+2000 مشاهدة مستهدفة", "تصدر قمة النتائج", 'شارة "موثق" ذهبية', "إشعار لـ 50 مستخدم قريب"]
     },
-    topBg: "bg-zinc-100",
+    topBg: "bg-purple-500/5",
   },
   {
     id: "pro" as PlanId,
-    name: { en: "Professional", fr: "Professionnel", ar: "الاحترافي" },
-    yearlyPrice: 240,
-    monthlyPrice: "25",
+    name: { en: "Gold Boost", fr: "Gold Boost", ar: "الباقة الذهبية" },
     priceInDh: 79,
     popular: true,
     features: {
-      en: ["5,000+ Views", "City Notifications", "Priority Support"],
-      fr: ["5,000+ Vues", "Notifications Ville", "Support Prioritaire"],
-      ar: ["+5000 مشاهدة", "إشعارات للمدينة", "دعم أولوية"]
+      en: ["+5000 Wide Views", "City-Wide Notifications", "Auto Social Media Post", "Dedicated Support"],
+      fr: ["+5000 Vues Larges", "Notifications Ville Entière", "Post Réseaux Sociaux Auto", "Support Dédié"],
+      ar: ["+5000 مشاهدة واسعة", "إشعارات لكل مستخدمي المدينة", "نشر تلقائي في منصاتنا", "دعم فني مخصص"]
     },
-    topBg: "bg-gradient-to-br from-blue-100 to-indigo-100",
+    topBg: "bg-amber-500/5",
   },
   {
     id: "premium" as PlanId,
-    name: { en: "Premium", fr: "Premium", ar: "البريميوم" },
-    yearlyPrice: 360,
-    monthlyPrice: "37",
+    name: { en: "Diamond Boost", fr: "Diamond Boost", ar: "باقة الألماس" },
     priceInDh: 149,
     features: {
-      en: ["15,000+ Views", "Full Prominence", "VIP Support"],
-      fr: ["15,000+ Vues", "Mise en avant totale", "Support VIP"],
-      ar: ["+15,000 مشاهدة", "تصدر شامل", "دعم VIP"]
+      en: ["Unlimited Views", "Main Page Pinning", "Full Prominence"],
+      fr: ["Vues Illimitées", "Épinglage Page Accueil", "Mise en avant totale"],
+      ar: ["مشاهدات غير محدودة", "تثبيت في الصفحة الرئيسية", "تصدر شامل و VIP"]
     },
-    topBg: "bg-zinc-100",
+    topBg: "bg-emerald-500/5",
   },
 ];
 
@@ -74,8 +66,7 @@ export default function BoostPage() {
   const { t, dir, language } = useLanguage();
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [selectedPlanId, setSelectedPlanId] = useState<PlanId>("standard");
-  const [isYearly, setIsYearly] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<PlanId>("pro");
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -110,14 +101,12 @@ export default function BoostPage() {
   const handleCheckout = async (testMode = false) => {
     if (!selectedPostId || !selectedPlanId) return;
     
-    // Calculate final price based on selected duration (60% discount for yearly)
-    const finalPrice = isYearly ? Math.round(selectedPlan.priceInDh * 5) : selectedPlan.priceInDh;
+    const finalPrice = selectedPlan.priceInDh;
 
-    // Redirect to our custom embedded checkout page
     const query = new URLSearchParams({
       postId: selectedPostId,
       planId: selectedPlanId,
-      planName: `${selectedPlan.name[lang]} (${isYearly ? (language === 'ar' ? 'سنوي' : 'Yearly') : (language === 'ar' ? 'شهري' : 'Monthly')})`,
+      planName: selectedPlan.name[lang],
       price: finalPrice.toString(),
       testMode: testMode.toString()
     }).toString();
@@ -146,43 +135,8 @@ export default function BoostPage() {
                 {t("boost.heroTitle")}
               </h1>
               <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
-                {t("boost.subtitle")}
+                {language === 'ar' ? "كل باقة مخصصة لترويج منشور واحد لضمان أقصى قدر من المشاهدات والفاعلية." : "Each pack is dedicated to boosting a single post to ensure maximum views and effectiveness."}
               </p>
-
-              {/* Toggle Switch */}
-              <div className="flex justify-center mt-6 mb-4">
-                <div className="bg-zinc-100 p-1 rounded-full flex items-center relative">
-                  <button
-                    onClick={() => setIsYearly(false)}
-                    className={cn(
-                      "relative z-10 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300",
-                      !isYearly ? "text-zinc-900" : "text-zinc-500 hover:text-zinc-700"
-                    )}
-                  >
-                    {language === 'ar' ? 'شهري' : 'Monthly'}
-                  </button>
-                  <button
-                    onClick={() => setIsYearly(true)}
-                    className={cn(
-                      "relative z-10 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2",
-                      isYearly ? "text-zinc-900" : "text-zinc-500 hover:text-zinc-700"
-                    )}
-                  >
-                    {language === 'ar' ? 'سنوي' : 'Yearly'}
-                    <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                      {language === 'ar' ? 'توفير 60%' : 'Save 60%'}
-                    </span>
-                  </button>
-                  <div
-                    className={cn(
-                      "absolute top-1 bottom-1 bg-white rounded-full shadow-sm transition-all duration-300 ease-in-out w-[calc(50%-4px)]",
-                      !isYearly 
-                        ? (dir === 'rtl' ? "right-1" : "left-1") 
-                        : (dir === 'rtl' ? "left-1" : "right-1")
-                    )}
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Plan cards */}
@@ -207,17 +161,12 @@ export default function BoostPage() {
                       </div>
                       <div className="flex items-end gap-1.5 mt-2 flex-wrap">
                         <span className="text-4xl sm:text-5xl font-black text-zinc-900 leading-none">
-                          {isYearly ? Math.round(plan.priceInDh * 5) : plan.priceInDh}
+                          {plan.priceInDh}
                         </span>
                         <span className="text-sm font-bold text-zinc-500 mb-1">
-                           DH {isYearly ? (language === 'ar' ? '/ سنة' : '/ yr') : (language === 'ar' ? '/ شهر' : '/ mo')}
+                           DH {language === 'ar' ? '(دفع لمرة واحدة)' : '(One-time)'}
                         </span>
                       </div>
-                      {isYearly && (
-                        <p className="text-xs font-bold text-zinc-400 mt-2">
-                          ~{Math.round(plan.priceInDh * 5 / 12)} DH / {language === 'ar' ? 'شهر' : 'mo'}
-                        </p>
-                      )}
                     </div>
 
                     <button className={cn(
@@ -270,7 +219,7 @@ export default function BoostPage() {
 
              <div className="text-center space-y-4">
               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-100">
-                {selectedPlan.name[lang]} - {isYearly ? Math.round(selectedPlan.priceInDh * 5) : selectedPlan.priceInDh} DH
+                {selectedPlan.name[lang]} - {selectedPlan.priceInDh} DH
               </div>
               <h2 className="text-3xl sm:text-4xl font-black text-zinc-900">
                 {language === 'ar' ? "اختر الإعلان الذي تريد ترويجه" : "Select the post to boost"}
@@ -348,16 +297,6 @@ export default function BoostPage() {
                   {language === 'ar' ? "دفع وتفعيل الترويج" : "Pay & Activate Boost"}
                 </button>
 
-                {user?.email === "med2005@gmail.com" && (
-                  <button
-                    onClick={() => handleCheckout(true)}
-                    disabled={processing}
-                    className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold py-3 px-12 rounded-2xl hover:bg-emerald-500/20 transition-all shadow-sm"
-                  >
-                    <Rocket size={18} />
-                    {language === 'ar' ? "تجربة الترويج (خاص بالمدير)" : "Simulate Success (Admin Only)"}
-                  </button>
-                )}
              </div>
           </motion.div>
         )}

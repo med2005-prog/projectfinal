@@ -19,8 +19,6 @@ export interface IPost extends Document {
   status: "active" | "resolved" | "deleted";
   boosted: boolean;
   boostPlan?: BoostPlan;
-  /** @deprecated use boostPlan */
-  boostType?: string;
   boostExpiresAt?: Date;
   boostRank: number; // 0=normal, 1=starter, 2=basic, 3=standard, 4=pro, 5=premium
   views: number;
@@ -53,7 +51,6 @@ const PostSchema: Schema = new Schema({
   // Monetization fields
   boosted: { type: Boolean, default: false },
   boostPlan: { type: String, enum: ["starter", "basic", "standard", "pro", "premium"] },
-  boostType: { type: String }, // kept for backward compat
   boostExpiresAt: { type: Date },
   boostRank: { type: Number, default: 0 }, // for efficient sort
 

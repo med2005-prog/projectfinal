@@ -11,6 +11,7 @@ interface User {
   isPremium: boolean;
   avatar?: string;
   isVerified?: boolean;
+  isPhoneVerified?: boolean;
   phone?: string;
   createdAt?: string;
 }

@@ -141,7 +141,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             </label>
             <ImageUpload
               value={formData.imageUrl}
-              onChange={(url) => setFormData({...formData, imageUrl: url})}
+              onUpload={(url) => setFormData({...formData, imageUrl: url})}
+              onRemove={() => setFormData({...formData, imageUrl: ""})}
             />
           </div>
 

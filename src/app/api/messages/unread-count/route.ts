@@ -4,6 +4,7 @@ import Message from "@/models/Message";
 import { getUserIdFromSession } from "@/lib/auth";
 
 export async function GET() {
+  console.log("DEBUG: HIT /api/messages/unread-count");
   try {
     await connectToDatabase();
     const userId = await getUserIdFromSession();

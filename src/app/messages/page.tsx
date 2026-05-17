@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Send, MoreVertical, Phone, Mic, ShieldAlert, CheckCircle2, Video, Loader2, MessageSquare, Trash2, ArrowLeft } from "lucide-react";
+import { Search, Send, MoreVertical, Mic, ShieldAlert, CheckCircle2, Loader2, MessageSquare, Trash2, ArrowLeft } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
-import { CallInterface } from "@/components/CallInterface";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -25,9 +24,7 @@ export default function MessagesPage() {
   const [msgLoading, setMsgLoading] = useState(false);
   
   const [isRecording, setIsRecording] = useState(false);
-  const [isCalling, setIsCalling] = useState(false);
   const [showActions, setShowActions] = useState(false);
-  const [callMode, setCallMode] = useState<"audio" | "video">("audio");
   const [inputMessage, setInputMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +56,7 @@ export default function MessagesPage() {
 
     if (user) {
       fetchConversations();
-      const interval = setInterval(fetchConversations, 5000);
+      const interval = setInterval(fetchConversations, 500);
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -101,7 +98,7 @@ export default function MessagesPage() {
     };
 
     fetchMessages(true);
-    interval = setInterval(() => fetchMessages(false), 3000);
+    interval = setInterval(() => fetchMessages(false), 500);
 
     return () => clearInterval(interval);
   }, [activeChat]);
@@ -248,31 +245,6 @@ export default function MessagesPage() {
   };
 
 
-  const [activeCallId, setActiveCallId] = useState<string | null>(null);
-
-  const handleStartCall = async (mode: "audio" | "video") => {
-    if (!activeChat || !user) return;
-    const receiver = activeChat.participants.find((p: any) => p._id !== user?._id);
-    
-    try {
-      setCallMode(mode);
-      const res = await fetch("/api/calls", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          receiverId: receiver._id, 
-          type: mode 
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setActiveCallId(data.data._id);
-        setIsCalling(true);
-      }
-    } catch (err) {
-      console.error("Failed to start call", err);
-    }
-  };
 
   if (authLoading || loading) {
     return (
@@ -322,6 +294,9 @@ export default function MessagesPage() {
                        {otherUser?.name.charAt(0)}
                     </div>
                   )}
+                  {otherUser?.lastSeen && (Date.now() - new Date(otherUser.lastSeen).getTime() < 60000) && (
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline mb-0.5">
@@ -369,14 +344,33 @@ export default function MessagesPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">{activeChat.participants.find((p: any) => p._id !== user?._id)?.name}</h3>
-                  <p className="text-xs text-green-500 font-medium">
-                    {language === 'ar' ? "متصل" : "En ligne"}
-                  </p>
+                  {(() => {
+                    const other = activeChat.participants.find((p: any) => p._id !== user?._id);
+                    const lastSeen = other?.lastSeen ? new Date(other.lastSeen) : null;
+                    const isOnline = lastSeen && (Date.now() - lastSeen.getTime() < 1500);
+                    
+                    if (isOnline) {
+                      return (
+                        <p className="text-xs text-green-500 font-medium flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                          {language === 'ar' ? "متصل الآن" : "Online"}
+                        </p>
+                      );
+                    } else if (lastSeen) {
+                      const diff = Math.floor((Date.now() - lastSeen.getTime()) / 60000);
+                      const timeText = diff < 60 
+                        ? (language === 'ar' ? `آخر ظهور منذ ${diff} دقيقة` : `Last seen ${diff}m ago`)
+                        : diff < 1440
+                          ? (language === 'ar' ? `آخر ظهور منذ ${Math.floor(diff/60)} ساعة` : `Last seen ${Math.floor(diff/60)}h ago`)
+                          : (language === 'ar' ? "غير متصل" : "Offline");
+                      return <p className="text-xs text-muted-foreground font-medium">{timeText}</p>;
+                    } else {
+                      return <p className="text-xs text-muted-foreground font-medium">{language === 'ar' ? "غير متصل" : "Offline"}</p>;
+                    }
+                  })()}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => handleStartCall("audio")} className="p-2 hover:bg-secondary rounded-full text-muted-foreground"><Phone size={20} /></button>
-                <button onClick={() => handleStartCall("video")} className="p-2 hover:bg-secondary rounded-full text-muted-foreground"><Video size={20} /></button>
                 <div className="relative">
                   <button 
                     onClick={() => setShowActions(!showActions)}
@@ -471,7 +465,9 @@ export default function MessagesPage() {
                     </div>
                     
                     <button 
-                      onClick={() => inputMessage.trim() ? handleSendMessage() : setIsRecording(true)}
+                      onClick={() => {
+                        inputMessage.trim() ? handleSendMessage() : setIsRecording(true);
+                      }}
                       className="w-12 h-12 shrink-0 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:opacity-90 transition-all shadow-md"
                     >
                       {inputMessage.trim() ? (
@@ -504,17 +500,6 @@ export default function MessagesPage() {
         )}
       </div>
 
-      <AnimatePresence>
-        {isCalling && (
-          <CallInterface 
-            userName={activeChat?.participants.find((p: any) => p._id !== user?._id)?.name} 
-            userAvatar={activeChat?.participants.find((p: any) => p._id !== user?._id)?.avatar} 
-            onEnd={() => { setIsCalling(false); setActiveCallId(null); }} 
-            mode={callMode}
-            callId={activeCallId || undefined}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

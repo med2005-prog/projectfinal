@@ -182,7 +182,7 @@ export default function AuthPage() {
             {isLogin && (
               <div className="text-center">
                 <Link href="/forgot-password" className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
-                  {t("auth.form.forgotPassword") || "Forgot your password?"}
+                  {(t as any)("auth.form.forgotPassword") || "Forgot your password?"}
                 </Link>
               </div>
             )}

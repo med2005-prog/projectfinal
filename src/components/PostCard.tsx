@@ -31,7 +31,7 @@ interface PostCardProps {
     isPremium?: boolean;
   };
   boosted?: boolean;
-  boostType?: string;
+  boostPlan?: string;
   onDelete?: () => void;
 }
 
@@ -46,7 +46,7 @@ export function PostCard({
   imageUrl,
   author,
   boosted,
-  boostType,
+  boostPlan,
   onDelete
 }: PostCardProps) {
   const { t, dir, language } = useLanguage();
@@ -56,11 +56,12 @@ export function PostCard({
   const [showBoost, setShowBoost] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Resolve the active plan from either field (new boostPlan or legacy boostType)
-  const activePlan = (boostType as string) || "";
+  // Resolve the active plan
+  const activePlan = boostPlan || "";
   const isPremiumPost = activePlan === "premium";
   const isProPost     = activePlan === "pro";
-  const isStarterPost = activePlan === "starter";
+  const isStandardPost = activePlan === "standard";
+  const isBasicPost   = activePlan === "basic";
 
   const isOwner = user?._id === author?._id;
   const isPartner = author?.role === "partner";
@@ -81,8 +82,8 @@ export function PostCard({
   return (
     <>
       <div className={cn(
-        "glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group relative",
-        (boosted || isPartner) && "ring-2 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.15)] bg-amber-50/[0.02]",
+        "glass-card rounded-[2rem] overflow-hidden group relative",
+        (boosted || isPartner) && "ring-4 ring-primary/20 shadow-[0_0_30px_rgba(128,0,255,0.15)] bg-white",
         isDeleting && "opacity-50 grayscale pointer-events-none"
       )} dir={dir}>
         

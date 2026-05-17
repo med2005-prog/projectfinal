@@ -26,6 +26,7 @@ export interface IUser extends Document {
   favorites: mongoose.Types.ObjectId[];
   pushSubscriptions: any[];
   isAdmin: boolean;
+  lastSeen: Date;
   createdAt: Date;
 }
 
@@ -69,6 +70,9 @@ const UserSchema: Schema = new Schema({
   hasUsedFreeBoost: { type: Boolean, default: false },
   favorites: [{ type: Schema.Types.ObjectId, ref: "Post" }],
   pushSubscriptions: [{ type: Object }],
+  
+  // Online tracking
+  lastSeen: { type: Date, default: Date.now },
   
   createdAt: { type: Date, default: Date.now }
 });

@@ -6,12 +6,28 @@ import { Briefcase, MapPin, Star, ShieldCheck, ArrowRight, Building2, Store, Loa
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function BusinessesPage() {
   const { t, dir, language } = useLanguage();
+  const { user } = useAuth();
   const [partners, setPartners] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasBusiness, setHasBusiness] = useState(false);
+
+  // Check if current user already has a business
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      try {
+        const res = await fetch("/api/business/check-status");
+        const data = await res.json();
+        if (data.success && data.hasBusiness) setHasBusiness(true);
+      } catch {}
+    };
+    check();
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,9 +75,16 @@ export default function BusinessesPage() {
                {t("biz.subtitle")}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-               <Link href="/signup?type=business" className="px-8 py-3 bg-primary text-white rounded-2xl font-black hover:opacity-90 transition-all shadow-xl shadow-primary/40">
-                  {t("biz.hero.btnRegister")}
-               </Link>
+               {!hasBusiness && (
+                 <Link href="/business/register" className="px-8 py-3 bg-primary text-white rounded-2xl font-black hover:opacity-90 transition-all shadow-xl shadow-primary/40">
+                    {t("biz.hero.btnRegister")}
+                 </Link>
+               )}
+               {hasBusiness && (
+                 <Link href="/business/dashboard" className="px-8 py-3 bg-primary text-white rounded-2xl font-black hover:opacity-90 transition-all shadow-xl shadow-primary/40">
+                    {language === 'ar' ? 'لوحة تحكم الشريك' : 'Partner Dashboard'}
+                 </Link>
+               )}
                <button className="px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-black hover:bg-white/20 transition-all">
                   {t("biz.hero.howItWorks")}
                </button>

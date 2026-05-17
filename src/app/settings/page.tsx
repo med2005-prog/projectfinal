@@ -9,7 +9,10 @@ import {
   LogOut, 
   ChevronRight,
   Camera,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  ShieldCheck,
+  Smartphone
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -31,6 +34,10 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editField, setEditField] = useState<{ key: string, label: string, value: string } | null>(null);
+  const [otpStep, setOtpStep] = useState<"none" | "sending" | "verifying">("none");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [otpSuccess, setOtpSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -99,6 +106,51 @@ export default function SettingsPage() {
     const updates = { [editField.key]: editField.value };
     await saveProfile(updates);
     setEditField(null);
+  };
+
+  const sendOTP = async () => {
+    setOtpStep("sending");
+    setOtpError("");
+    try {
+      const res = await fetch("/api/auth/send-otp", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setOtpStep("verifying");
+      } else {
+        setOtpError(data.error || "Failed to send code");
+        setOtpStep("none");
+      }
+    } catch (err) {
+      setOtpError("Connection error");
+      setOtpStep("none");
+    }
+  };
+
+  const verifyOTP = async () => {
+    setIsSaving(true);
+    setOtpError("");
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: otpCode })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOtpSuccess(true);
+        setTimeout(() => {
+          setOtpStep("none");
+          setOtpSuccess(false);
+          refreshUser();
+        }, 2000);
+      } else {
+        setOtpError(data.error || "Incorrect code");
+      }
+    } catch (err) {
+      setOtpError("Connection error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const sections = [
@@ -263,6 +315,23 @@ export default function SettingsPage() {
                            )}
                          >
                            {item.value}
+                           {item.key === "phone" && user?.phone && (
+                               (user as any).isPhoneVerified ? (
+                                 <div className="flex items-center gap-1 text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full">
+                                    <ShieldCheck size={10} /> {language === 'ar' ? "موثق" : "Verified"}
+                                 </div>
+                               ) : (
+                                 <button 
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     sendOTP();
+                                   }}
+                                   className="text-[10px] bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full hover:bg-amber-500 hover:text-white transition-all"
+                                 >
+                                    {language === 'ar' ? "وثق الآن" : "Verify Now"}
+                                 </button>
+                               )
+                            )}
                            {item.editable && <ChevronRight size={14} className={cn("transition-transform group-hover:translate-x-1", dir === 'rtl' ? 'rotate-180 group-hover:-translate-x-1' : '')} />}
                          </div>
                        )}
@@ -316,6 +385,79 @@ export default function SettingsPage() {
                     </button>
                  </div>
               </div>
+           </div>
+        </div>
+      )}
+
+      {otpStep !== "none" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+           <div className="bg-background w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden text-center">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl -mr-24 -mt-24" />
+              
+              {otpSuccess ? (
+                <div className="space-y-6 animate-in zoom-in duration-300">
+                  <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-500/10">
+                    <CheckCircle2 size={40} />
+                  </div>
+                  <h3 className="text-2xl font-black">{language === 'ar' ? "تم التوثيق بنجاح!" : "Verified Successfully!"}</h3>
+                  <p className="text-muted-foreground font-bold">{language === 'ar' ? "تم تأكيد رقم هاتفك." : "Your phone number has been confirmed."}</p>
+                </div>
+              ) : (
+                <div className="space-y-8 relative z-10">
+                  <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto">
+                    {otpStep === "sending" ? <Loader2 className="animate-spin" size={32} /> : <Smartphone size={32} />}
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-2xl font-black mb-2">{language === 'ar' ? "تأكيد رقم الهاتف" : "Verify Phone"}</h3>
+                    <p className="text-muted-foreground font-bold text-sm leading-relaxed">
+                      {language === 'ar' 
+                        ? `لقد أرسلنا كود التفعيل إلى الرقم ${user?.phone}. يرجى إدخاله للمتابعة.` 
+                        : `We sent a code to ${user?.phone}. Please enter it to continue.`}
+                    </p>
+                  </div>
+
+                  {otpError && (
+                    <div className="p-4 bg-destructive/10 text-destructive text-xs font-bold rounded-2xl animate-in shake duration-300">
+                      {otpError}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <input 
+                      type="text"
+                      placeholder="------"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="w-full text-center text-4xl tracking-[1rem] py-6 rounded-3xl bg-secondary/50 border-2 border-transparent focus:border-primary outline-none font-black transition-all"
+                      autoFocus
+                    />
+                    
+                    <div className="flex gap-4">
+                      <button 
+                        onClick={() => setOtpStep("none")}
+                        className="flex-1 py-4 rounded-2xl font-black text-muted-foreground hover:bg-secondary transition-all"
+                      >
+                        {t("common.cancel")}
+                      </button>
+                      <button 
+                        onClick={verifyOTP}
+                        disabled={isSaving || otpCode.length < 6}
+                        className="flex-1 py-4 rounded-2xl bg-primary text-white font-black shadow-xl shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all flex items-center justify-center disabled:opacity-50"
+                      >
+                        {isSaving ? <Loader2 className="animate-spin" /> : (language === 'ar' ? "تأكيد" : "Confirm")}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={sendOTP}
+                    className="text-xs font-bold text-primary hover:underline"
+                  >
+                    {language === 'ar' ? "إعادة إرسال الكود" : "Resend Code"}
+                  </button>
+                </div>
+              )}
            </div>
         </div>
       )}

@@ -38,19 +38,28 @@ export async function POST(req: Request) {
     // Check if user already exists
     let user = await User.findOne({ email: payload.email });
 
+    // Check if there's an approved business for this email
+    const { default: Business } = await import("@/models/Business");
+    const approvedBusiness = await Business.findOne({ email: payload.email, status: "approved" });
+
     if (!user) {
       // Create new user if they don't exist
       user = await User.create({
         name: payload.name || "Google User",
         email: payload.email,
-        password: Math.random().toString(36).slice(-10) + "A1!", // Random password, they won't use it
+        password: Math.random().toString(36).slice(-10) + "A1!",
         avatar: payload.picture || "",
         isVerified: payload.email_verified || false,
+        role: approvedBusiness ? "partner" : "user",
       });
+    } else if (approvedBusiness && user.role !== "partner") {
+      // If user exists but is not a partner yet, and has approved business
+      user.role = "partner";
+      await user.save();
     }
 
     // Generate our JWT token
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
     // Set cookie
     const cookie = serialize("token", token, {

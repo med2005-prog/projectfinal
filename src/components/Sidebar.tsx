@@ -13,7 +13,11 @@ import {
   Briefcase, 
   Settings,
   BellRing,
-  X
+  X,
+  Zap,
+  ShieldCheck,
+  Tag,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -30,21 +34,25 @@ export function Sidebar({ onClose, className }: SidebarProps) {
   const { user } = useAuth();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const [msgRes, notifRes] = await Promise.all([
+        const [msgRes, notifRes, catRes] = await Promise.all([
           fetch("/api/messages/unread-count"),
-          fetch("/api/notifications/unread-count")
+          fetch("/api/notifications/unread-count"),
+          fetch("/api/posts/category-counts")
         ]);
         const msgData = await msgRes.json();
         const notifData = await notifRes.json();
+        const catData = await catRes.json();
         
         if (msgData.success) setUnreadMessages(msgData.data);
         if (notifData.success) setUnreadNotifications(notifData.data);
+        if (catData.success) setCounts(catData.data);
       } catch (error) {
-        console.error(t("common.failedSidebarFetch"), error);
+        console.error((t as any)("common.failedSidebarFetch"), error);
       }
     };
 
@@ -72,6 +80,14 @@ export function Sidebar({ onClose, className }: SidebarProps) {
       icon: Briefcase
     });
   }
+
+  const categories = [
+    { name: t("cat.electronics"), key: "electronics" },
+    { name: t("cat.wallets"), key: "wallets" },
+    { name: t("cat.keys"), key: "keys" },
+    { name: t("cat.pets"), key: "pets" },
+    { name: t("cat.bags"), key: "bags" },
+  ];
 
 
   return (
@@ -142,7 +158,7 @@ export function Sidebar({ onClose, className }: SidebarProps) {
                 <item.icon size={18} />
                 {item.name}
               </div>
-              {item.badge > 0 && (
+              {item.badge !== undefined && item.badge > 0 && (
                 <span className={cn(
                   "text-[10px] font-black px-2 py-0.5 rounded-full",
                   isActive ? "bg-white text-primary" : "bg-primary text-white"
@@ -153,6 +169,29 @@ export function Sidebar({ onClose, className }: SidebarProps) {
             </Link>
           );
         })}
+
+        {/* Separator */}
+        <div className="h-px bg-border/50 my-6 mx-4" />
+
+        {/* Extra Sections from Right Sidebar */}
+        <div className="space-y-6 px-2">
+           {/* Boost Section */}
+           <div className="rounded-2xl bg-gradient-to-br from-primary to-primary-600 p-4 text-white shadow-lg relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap size={18} className="text-white fill-white" />
+                <h3 className="font-bold text-sm">{t("sidebar.boost.title")}</h3>
+              </div>
+              <p className="text-[10px] text-white/80 mb-3 font-medium">
+                {t("sidebar.boost.desc")}
+              </p>
+              <Link href="/boost" onClick={onClose} className="block text-center w-full bg-white text-primary hover:bg-white/90 text-xs font-black py-2 rounded-xl transition-all shadow-sm">
+                {t("sidebar.boost.btn")}
+              </Link>
+            </div>
+          </div>
+
+        </div>
       </nav>
 
       <div className="p-4 border-t">

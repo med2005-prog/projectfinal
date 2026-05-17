@@ -11,15 +11,57 @@ export default function CheckoutSuccessPage() {
   const { language, dir } = useLanguage();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
+  const [activated, setActivated] = useState(false);
 
-  const plan = searchParams.get("plan") || "standard";
+  const planId = searchParams.get("plan") || "pro";
   const postId = searchParams.get("post");
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (postId && planId && !activated) {
+      activateBoost();
+    }
+  }, [postId, planId]);
+
+  const activateBoost = async () => {
+    try {
+      const PLAN_DATA: Record<string, { rank: number; target: number }> = {
+        basic: { rank: 2, target: 500 },
+        standard: { rank: 3, target: 2000 },
+        pro: { rank: 4, target: 5000 },
+        premium: { rank: 5, target: 1000000 },
+      };
+
+      const data = PLAN_DATA[planId] || PLAN_DATA.pro;
+
+      await fetch(`/api/posts/${postId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boosted: true,
+          boostPlan: planId,
+          boostRank: data.rank,
+          targetViews: data.target,
+          boostedAt: new Date().toISOString(),
+        }),
+      });
+      setActivated(true);
+    } catch (error) {
+      console.error("Failed to activate boost:", error);
+    }
+  };
 
   if (!mounted) return null;
+
+  const getPlanNameAr = (id: string) => {
+    switch (id) {
+      case 'basic': return "الباقة الأساسية";
+      case 'standard': return "الباقة الفضية";
+      case 'pro': return "الباقة الذهبية";
+      case 'premium': return "باقة الألماس";
+      default: return "الاحترافية";
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-50 via-background to-background" dir={dir}>
@@ -73,8 +115,8 @@ export default function CheckoutSuccessPage() {
               className="text-zinc-500 text-lg font-medium max-w-md mx-auto"
             >
               {language === 'ar' 
-                ? `إعلانك الآن في قمة القائمة بفضل باقة ${plan.toUpperCase()}. استعد للمكالمات!`
-                : `Your post is now featured at the top with the ${plan.toUpperCase()} plan. Get ready!`}
+                ? `إعلانك الآن في قمة القائمة بفضل ${getPlanNameAr(planId)}. استعد للمكالمات!`
+                : `Your post is now featured at the top with the ${planId.toUpperCase()} pack. Get ready!`}
             </motion.p>
           </div>
 
@@ -88,7 +130,7 @@ export default function CheckoutSuccessPage() {
             <div className="flex items-center justify-between">
               <span className="text-zinc-500 text-xs font-black uppercase tracking-widest">{language === 'ar' ? "نوع الخطة" : "Plan Type"}</span>
               <span className="font-bold flex items-center gap-2 text-primary">
-                <Zap size={14} className="fill-primary" /> {plan.toUpperCase()}
+                <Zap size={14} className="fill-primary" /> {language === 'ar' ? getPlanNameAr(planId) : planId.toUpperCase()}
               </span>
             </div>
             <div className="h-px bg-zinc-900/10" />

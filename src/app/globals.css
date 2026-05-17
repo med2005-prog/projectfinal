@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  --color-primary-50: #f5f0ff;
+  --color-primary-100: #ede5ff;
+  --color-primary-200: #dccbff;
+  --color-primary-300: #c1a1ff;
+  --color-primary-400: #a16bff;
+  --color-primary-500: #8000FF;
+  --color-primary-600: #7000e0;
+  --color-primary-700: #5c00b8;
+  --color-primary-800: #4a0094;
+  --color-primary-900: #3c0078;
   
-  --color-secondary-50: #fdf4ff;
-  --color-secondary-100: #fae8ff;
-  --color-secondary-200: #f5d0fe;
-  --color-secondary-300: #f0abfc;
-  --color-secondary-400: #e879f9;
-  --color-secondary-500: #d946ef;
-  --color-secondary-600: #c026d3;
-  --color-secondary-700: #a21caf;
-  --color-secondary-800: #86198f;
-  --color-secondary-900: #701a75;
+  --color-secondary-50: #faf9f6;
+  --color-secondary-100: #f5f0e8;
+  --color-secondary-200: #eadbc8;
+  --color-secondary-300: #dac3a8;
+  --color-secondary-400: #c4a180;
+  --color-secondary-500: #ad7f5a;
+  --color-secondary-600: #9c6c4e;
+  --color-secondary-700: #825842;
+  --color-secondary-800: #6a4939;
+  --color-secondary-900: #573c30;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -52,28 +52,40 @@
 
 @layer base {
   :root {
-    --background: #f8fafc;
-    --foreground: #0f172a;
+    --background: #F5F0E8; /* Light Brown / Cream */
+    --foreground: #1A1A1A;
     --card: #ffffff;
-    --card-foreground: #0f172a;
+    --card-foreground: #1A1A1A;
     --popover: #ffffff;
-    --popover-foreground: #0f172a;
-    --primary: #3b82f6;
+    --popover-foreground: #1A1A1A;
+    --primary: #8000FF; /* Vibrant Purple */
     --primary-foreground: #ffffff;
-    --secondary: #f1f5f9;
-    --secondary-foreground: #0f172a;
-    --muted: #f1f5f9;
-    --muted-foreground: #64748b;
-    --accent: #f1f5f9;
-    --accent-foreground: #0f172a;
+    --secondary: #EADBC8; /* Soft Brown */
+    --secondary-foreground: #8000FF;
+    --muted: #EADBC8;
+    --muted-foreground: #666666;
+    --accent: #8000FF;
+    --accent-foreground: #ffffff;
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
-    --border: #e2e8f0;
-    --input: #e2e8f0;
-    --ring: #3b82f6;
-    --radius: 0.75rem;
+    --border: #D2B48C33; /* Tan border with transparency */
+    --input: #ffffff;
+    --ring: #8000FF;
+    --radius: 1.25rem; /* Smoother rounded corners */
   }
   
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   html[lang="ar"] {
     --font-sans: var(--font-cairo), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   }
@@ -120,20 +132,19 @@
   }
   
   .glass-card {
-    @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all duration-300;
+    @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-all duration-500 ease-out;
+  }
+
+  .glass-card:hover {
+    @apply -translate-y-2 scale-[1.02] shadow-2xl shadow-primary/10 border-primary/20 bg-white;
+  }
+  
+  .card-hover-effect {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98];
   }
 
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-500;
   }
-}
 
-@keyframes grow {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(2); }
-}
-
-.animate-grow {
-  animation: grow 1s ease-in-out infinite;
-  transform-origin: center;
 }

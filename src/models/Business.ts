@@ -10,11 +10,15 @@ export interface IBusiness extends Document {
   category: string;
   description: string;
   website?: string;
+  lat?: number;
+  lng?: number;
+  userId: mongoose.Types.ObjectId;
   status: "pending" | "approved" | "rejected";
   createdAt: Date;
 }
 
 const BusinessSchema: Schema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: "User" },
   businessName: { type: String, required: true },
   ownerName:    { type: String, required: true },
   email:        { type: String, required: true },
@@ -24,6 +28,8 @@ const BusinessSchema: Schema = new Schema({
   category:     { type: String, required: true },
   description:  { type: String, required: true },
   website:      { type: String },
+  lat:          { type: Number },
+  lng:          { type: Number },
   status:       { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
 }, { timestamps: true });
 

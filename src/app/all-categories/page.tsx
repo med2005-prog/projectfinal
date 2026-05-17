@@ -41,7 +41,6 @@ export default function CategoriesPage() {
     { name: t("cat.keys"), icon: Key, slug: "keys", color: "text-emerald-500 bg-emerald-500/10" },
     { name: t("cat.pets"), icon: Dog, slug: "pets", color: "text-orange-500 bg-orange-500/10" },
     { name: t("cat.bags"), icon: Briefcase, slug: "bags", color: "text-purple-500 bg-purple-500/10" },
-    { name: t("cat.other"), icon: Gift, slug: "other", color: "text-gray-500 bg-gray-500/10" },
   ];
 
   return (
