@@ -16,6 +16,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
@@ -143,15 +144,16 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               value={formData.imageUrl}
               onUpload={(url) => setFormData({...formData, imageUrl: url})}
               onRemove={() => setFormData({...formData, imageUrl: ""})}
+              onChangeLoading={setImageUploading}
             />
           </div>
 
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || imageUploading}
             className="w-full bg-primary text-white p-4 rounded-xl font-black flex items-center justify-center gap-2 hover:bg-primary/90 disabled:opacity-50"
           >
-            {saving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+            {saving || imageUploading ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
             {t("edit.save")}
           </button>
         </form>

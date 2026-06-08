@@ -44,13 +44,19 @@ export function Sidebar({ onClose, className }: SidebarProps) {
           fetch("/api/notifications/unread-count"),
           fetch("/api/posts/category-counts")
         ]);
-        const msgData = await msgRes.json();
-        const notifData = await notifRes.json();
-        const catData = await catRes.json();
-        
-        if (msgData.success) setUnreadMessages(msgData.data);
-        if (notifData.success) setUnreadNotifications(notifData.data);
-        if (catData.success) setCounts(catData.data);
+
+        if (msgRes.ok) {
+          const msgData = await msgRes.json();
+          if (msgData.success) setUnreadMessages(msgData.data);
+        }
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          if (notifData.success) setUnreadNotifications(notifData.data);
+        }
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          if (catData.success) setCounts(catData.data);
+        }
       } catch (error) {
         console.error((t as any)("common.failedSidebarFetch"), error);
       }

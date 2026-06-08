@@ -4,11 +4,22 @@ import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { serialize } from "cookie";
+import { isRateLimited } from "@/lib/rateLimit";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
 
 export async function POST(req: Request) {
   try {
+    // Brute-force protection: 5 login attempts per 15 minutes per IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    const { limited, resetTime } = isRateLimited(ip, "login", { limit: 5, windowMs: 15 * 60 * 1000 });
+    if (limited) {
+      return NextResponse.json(
+        { success: false, error: "Too many login attempts. Please try again in 15 minutes." },
+        { status: 429, headers: { "Retry-After": Math.ceil((resetTime - Date.now()) / 1000).toString() } }
+      );
+    }
+
     await connectToDatabase();
     const { email, password } = await req.json();
 

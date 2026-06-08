@@ -112,7 +112,7 @@ export default function CategoryPage() {
               title={post.title}
               description={post.description}
               location={post.location}
-              date={new Date(post.date)}
+              date={new Date(post.createdAt || post.date)}
               category={post.category}
               imageUrl={post.images?.[0]}
               author={post.author}

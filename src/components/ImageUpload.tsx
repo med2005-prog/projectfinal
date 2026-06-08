@@ -9,9 +9,10 @@ interface ImageUploadProps {
   onUpload: (url: string) => void;
   onRemove: () => void;
   value?: string;
+  onChangeLoading?: (loading: boolean) => void;
 }
 
-export function ImageUpload({ onUpload, onRemove, value }: ImageUploadProps) {
+export function ImageUpload({ onUpload, onRemove, value, onChangeLoading }: ImageUploadProps) {
   const { t, language } = useLanguage();
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -21,6 +22,7 @@ export function ImageUpload({ onUpload, onRemove, value }: ImageUploadProps) {
     if (!file) return;
 
     setLoading(true);
+    onChangeLoading?.(true);
     
     try {
       const formData = new FormData();
@@ -43,6 +45,7 @@ export function ImageUpload({ onUpload, onRemove, value }: ImageUploadProps) {
       alert("Error uploading image");
     } finally {
       setLoading(false);
+      onChangeLoading?.(false);
     }
   };
 

@@ -60,6 +60,7 @@ export const translations = {
     "cat.keys": "Keys",
     "cat.pets": "Pets",
     "cat.bags": "Bags & Luggage",
+    "cat.other": "Other",
 
     // Post Cards
     "post.lost": "LOST",
@@ -370,6 +371,7 @@ export const translations = {
     "cat.keys": "Clés",
     "cat.pets": "Animaux",
     "cat.bags": "Sacs & Bagages",
+    "cat.other": "Autre",
 
     // Post Cards
     "post.lost": "PERDU",
@@ -679,6 +681,7 @@ export const translations = {
     "cat.keys": "مفاتيح",
     "cat.pets": "حيوانات أليفة",
     "cat.bags": "حقائب وأمتعة",
+    "cat.other": "أخرى",
 
     // Post Cards
     "post.lost": "مفقود",

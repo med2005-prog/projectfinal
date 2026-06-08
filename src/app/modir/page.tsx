@@ -87,16 +87,36 @@ export default function ModirPage() {
     if (!confirm("واش متأكد بغيتي تمسح هاد المنشور؟")) return;
     try {
       const res = await fetch(`/api/posts/${id}`, { method: "DELETE" });
-      if (res.ok) setData(prev => ({ ...prev, posts: prev.posts.filter((p: any) => p._id !== id) }));
-    } catch (err) { console.error(err); }
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setData(prev => ({ ...prev, posts: prev.posts.filter((p: any) => p._id !== id) }));
+      } else {
+        alert("فشل حذف المنشور: " + (json.error || "خطأ غير معروف"));
+      }
+    } catch (err) {
+      console.error("Delete post error:", err);
+      alert("مشكلة في الاتصال. حاول مرة أخرى.");
+    }
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (!confirm("واش متأكد بغيتي تمسح هاد المستخدم؟")) return;
+    if (!confirm("واش متأكد بغيتي تمسح هاد المستخدم؟ غادي يتمسحو حتى المنشورات ديالو.")) return;
     try {
       const res = await fetch(`/api/modir/users/${id}`, { method: "DELETE" });
-      if (res.ok) setData(prev => ({ ...prev, users: prev.users.filter((u: any) => u._id !== id) }));
-    } catch (err) { console.error(err); }
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setData(prev => ({
+          ...prev,
+          users: prev.users.filter((u: any) => u._id !== id),
+          posts: prev.posts.filter((p: any) => p.author?._id !== id)
+        }));
+      } else {
+        alert("فشل حذف المستخدم: " + (json.error || "خطأ غير معروف"));
+      }
+    } catch (err) {
+      console.error("Delete user error:", err);
+      alert("مشكلة في الاتصال. حاول مرة أخرى.");
+    }
   };
 
   const handleBusinessStatus = async (id: string, status: "approved" | "rejected") => {
@@ -239,15 +259,15 @@ export default function ModirPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#2D1B4D] relative overflow-hidden font-sans select-none" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden font-sans select-none" dir="rtl">
       {/* Animated Aurora Backgrounds */}
       <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-primary/20 rounded-full blur-[150px] animate-pulse" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-primary/10 rounded-full blur-[150px] animate-pulse delay-700" />
-      <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] bg-blue-400/5 rounded-full blur-[120px] animate-bounce duration-[10s]" />
+      <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] animate-bounce duration-[10s]" />
 
       <div className="relative z-10 flex h-screen p-6 gap-8">
         {/* Futuristic Sidebar - Floating Glass */}
-        <aside className="w-80 bg-white/30 backdrop-blur-[50px] rounded-[4rem] border border-white/50 p-10 flex flex-col shadow-[0_30px_60px_-15px_rgba(45,27,77,0.1)] hidden lg:flex transition-all duration-700 hover:bg-white/40">
+        <aside className="w-80 bg-white/30 backdrop-blur-[50px] rounded-[4rem] border border-white/50 p-10 flex flex-col shadow-[0_30px_60px_-15px_rgba(128,0,255,0.08)] hidden lg:flex transition-all duration-700 hover:bg-white/40">
           <div className="flex items-center gap-4 mb-16 px-2 group cursor-pointer">
             <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-[1.8rem] flex items-center justify-center shadow-2xl shadow-primary/40 group-hover:rotate-[15deg] transition-all duration-500">
                <Zap size={32} className="text-white fill-white/20" />
@@ -271,7 +291,7 @@ export default function ModirPage() {
                 className={cn(
                   "w-full flex items-center gap-5 px-8 py-5 rounded-[2rem] font-black text-sm transition-all duration-500 relative group",
                   activeTab === item.id 
-                    ? "bg-primary text-white shadow-[0_15px_30px_-5px_rgba(45,27,77,0.3)] scale-[1.05]" 
+                    ? "bg-primary text-white shadow-[0_15px_30px_-5px_rgba(128,0,255,0.2)] scale-[1.05]" 
                     : "text-primary/40 hover:text-primary hover:bg-primary/5"
                 )}
               >
@@ -333,12 +353,12 @@ export default function ModirPage() {
               {/* Stats Grid - 3D Floating Effect */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                 {[
-                  { label: "إجمالي المنشورات", value: stats.total, icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10" },
+                  { label: "إجمالي المنشورات", value: stats.total, icon: FileText, color: "text-primary", bg: "bg-primary/10" },
                   { label: "الأرباح الكلية", value: `${stats.revenue} DH`, icon: Zap, color: "text-green-500", bg: "bg-green-500/10" },
-                  { label: "المستخدمين", value: stats.users, icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
+                  { label: "المستخدمين", value: stats.users, icon: Users, color: "text-primary", bg: "bg-primary/10" },
                   { label: "طلبات الشركاء", value: stats.bizPending, icon: Building2, color: "text-amber-500", bg: "bg-amber-500/10" },
                 ].map((s, i) => (
-                  <div key={i} className="group bg-white/40 backdrop-blur-2xl border border-white p-10 rounded-[3.5rem] shadow-[0_20px_40px_-15px_rgba(45,27,77,0.05)] hover:bg-white/60 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                  <div key={i} className="group bg-white/40 backdrop-blur-2xl border border-white p-10 rounded-[3.5rem] shadow-[0_20px_40px_-15px_rgba(128,0,255,0.04)] hover:bg-white/60 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
                     <div className={cn("w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6", s.bg, s.color)}>
                        <s.icon size={32} />
                     </div>
@@ -763,7 +783,7 @@ export default function ModirPage() {
                           
                           <div className="flex gap-5 relative z-10">
                              {biz.status !== 'approved' && (
-                                <button onClick={() => handleBusinessStatus(biz._id, 'approved')} className="flex-1 py-6 bg-primary text-white font-black rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(45,27,77,0.3)] hover:scale-[1.02] active:scale-95 transition-all text-lg">قبول الشريك</button>
+                                <button onClick={() => handleBusinessStatus(biz._id, 'approved')} className="flex-1 py-6 bg-primary text-white font-black rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(128,0,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all text-lg">قبول الشريك</button>
                              )}
                              <button onClick={() => handleDeleteBusiness(biz._id)} className="px-10 py-6 bg-red-500/10 text-red-500 font-black rounded-[2rem] hover:bg-red-500 hover:text-white transition-all">حذف</button>
                           </div>

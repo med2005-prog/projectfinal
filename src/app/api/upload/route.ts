@@ -1,9 +1,26 @@
 import { NextResponse } from 'next/server';
 import cloudinary from '@/lib/cloudinary';
-
+import { getUserIdFromSession } from '@/lib/auth';
+import { isRateLimited } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
+    // Auth guard — must be logged in to upload
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit: 10 uploads per 10 minutes per IP
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    const { limited, resetTime } = isRateLimited(ip, 'upload', { limit: 10, windowMs: 10 * 60 * 1000 });
+    if (limited) {
+      return NextResponse.json({ success: false, error: 'Too many uploads. Please wait before uploading again.' }, {
+        status: 429,
+        headers: { 'Retry-After': Math.ceil((resetTime - Date.now()) / 1000).toString() }
+      });
+    }
+
     const formData = await req.formData();
     const file = formData.get('image') as File | null;
     

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, cloneElement, ReactElement } from "react";
 import {
   Check, Zap, Star, Crown, Sparkles, Rocket,
   Loader2, ShieldCheck, ArrowRight, X
@@ -231,7 +231,7 @@ export function BoostPricing({ postId, onSuccess, onCancel }: BoostPricingProps)
           
           <div className="flex items-center gap-6 relative z-10">
             <div className={cn("w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl", getPlanStyles(selectedPlan).bg)}>
-               {React.cloneElement(getPlanStyles(selectedPlan).icon as React.ReactElement, { size: 36, className: 'text-white' })}
+               {cloneElement(getPlanStyles(selectedPlan).icon as ReactElement<any>, { size: 36, className: 'text-white' })}
             </div>
             <div>
                <h3 className="text-2xl font-black text-zinc-900">{selected.nameAr}</h3>

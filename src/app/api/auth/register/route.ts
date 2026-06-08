@@ -4,11 +4,22 @@ import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { serialize } from "cookie";
+import { isRateLimited } from "@/lib/rateLimit";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
 
 export async function POST(req: Request) {
   try {
+    // Spam protection: 3 registrations per 30 minutes per IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    const { limited, resetTime } = isRateLimited(ip, "register", { limit: 3, windowMs: 30 * 60 * 1000 });
+    if (limited) {
+      return NextResponse.json(
+        { success: false, error: "Too many registration attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": Math.ceil((resetTime - Date.now()) / 1000).toString() } }
+      );
+    }
+
     await connectToDatabase();
     const { name, email, password, role } = await req.json();
     

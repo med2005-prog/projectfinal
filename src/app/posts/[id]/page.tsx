@@ -92,6 +92,32 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const handleShare = async () => {
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareText = language === 'ar' 
+      ? `عاونونا نلقاو هاد المفقود/المعثور عليه: "${post.title}" فـ ${post.city}، المغرب. التفاصيل هنا: `
+      : `Help us with this Lost/Found item: "${post.title}" in ${post.city}, Morocco. Details here: `;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(language === 'ar' ? "تم نسخ رابط الإعلان بنجاح! " : "Link copied to clipboard! 🎉");
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+      }
+    }
+  };
+
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <Loader2 className="animate-spin text-primary" size={40} />
@@ -156,11 +182,11 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
                 <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{post.title}</h1>
                 <div className="flex items-center gap-2 text-muted-foreground font-bold text-sm bg-secondary px-4 py-2 rounded-xl">
                   <Clock size={16} />
-                  {formatDistanceToNow(new Date(post.date), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(post.createdAt || post.date), { addSuffix: true })}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
                  <div className="space-y-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t("form.category")}</p>
                     <p className="font-bold text-primary">{post.category}</p>
@@ -168,6 +194,14 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
                  <div className="space-y-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t("form.location")}</p>
                     <p className="font-bold">{post.city}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      {post.type === 'lost' ? t("form.whenLost") : t("form.whenFound")}
+                    </p>
+                    <p className="font-bold">
+                      {new Date(post.date).toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
                  </div>
                  <div className="space-y-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t("form.status")}</p>
@@ -199,7 +233,7 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
                     <MessageCircle size={22} />
                     {t("post.contact")}
                  </button>
-                 <button className="p-4 bg-secondary rounded-2xl hover:bg-secondary/80 transition-all">
+                 <button onClick={handleShare} className="p-4 bg-secondary rounded-2xl hover:bg-secondary/80 transition-all active:scale-95" title={language === 'ar' ? "مشاركة" : "Share"}>
                     <Share2 size={22} />
                  </button>
               </div>

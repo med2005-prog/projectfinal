@@ -185,7 +185,7 @@ export default function Home() {
           <MapArea items={posts} />
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((post) => (
             <PostCard 
               key={post._id} 
@@ -194,7 +194,7 @@ export default function Home() {
               title={post.title}
               description={post.description}
               location={post.location}
-              date={new Date(post.date)}
+              date={new Date(post.createdAt || post.date)}
               category={post.category}
               imageUrl={post.images[0]}
               author={post.author}

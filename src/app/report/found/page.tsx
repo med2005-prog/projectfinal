@@ -18,6 +18,7 @@ const MapArea = dynamic(() => import("@/components/MapArea"), {
 
 export default function ReportFound() {
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { t, dir } = useLanguage();
   const { user, loading: authLoading } = useAuth();
@@ -186,6 +187,7 @@ export default function ReportFound() {
                           value={formData.imageUrl} 
                           onUpload={(url) => setFormData({ ...formData, imageUrl: url })} 
                           onRemove={() => setFormData({ ...formData, imageUrl: "" })} 
+                          onChangeLoading={setImageUploading}
                         />
                     </div>
 
@@ -219,11 +221,11 @@ export default function ReportFound() {
                     
                     <button 
                         type="submit" 
-                        disabled={loading}
+                        disabled={loading || imageUploading}
                         className="w-full sm:w-auto flex items-center justify-center gap-3 bg-green-500 text-white font-black py-4 px-10 rounded-2xl shadow-xl shadow-green-500/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
                     >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : t("form.submitFound")}
-                        {!loading && <ArrowRight size={20} className={dir === 'rtl' ? 'rotate-180' : ''} />}
+                        {loading || imageUploading ? <Loader2 className="animate-spin" size={20} /> : t("form.submitFound")}
+                        {!(loading || imageUploading) && <ArrowRight size={20} className={dir === 'rtl' ? 'rotate-180' : ''} />}
                     </button>
                   </div>
                </form>

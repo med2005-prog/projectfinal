@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
+import mongoose from "mongoose";
 
 import Post, { BoostPlan } from "@/models/Post";
 import User from "@/models/User";
@@ -63,16 +64,45 @@ export async function POST(
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + config.durationHours);
 
-    post.boosted = true;
-    post.boostPlan = boostPlan;
-    post.boostType = boostPlan; // backward compat
-    post.boostExpiresAt = expiresAt;
-    post.boostRank = config.rank;
-    await post.save();
+    // Mongoose transaction with local standalone fallback
+    let transactionCommitted = false;
+    try {
+      const session = await mongoose.startSession();
+      await session.withTransaction(async () => {
+        post.boosted = true;
+        post.boostPlan = boostPlan;
+        post.boostType = boostPlan; // backward compat
+        post.boostExpiresAt = expiresAt;
+        post.boostRank = config.rank;
+        await post.save({ session });
 
-    // Mark free boost used
-    if (config.isFree && userId) {
-      await User.findByIdAndUpdate(userId, { hasUsedFreeBoost: true });
+        // Mark free boost used
+        if (config.isFree && userId) {
+          await User.findByIdAndUpdate(userId, { hasUsedFreeBoost: true }, { session });
+        }
+      });
+      await session.endSession();
+      transactionCommitted = true;
+    } catch (txError: any) {
+      // If MongoDB is running in standalone mode (no Replica Set), fall back to non-transactional updates
+      const errorMsg = txError.message?.toLowerCase() || "";
+      if (errorMsg.includes("replica set") || errorMsg.includes("transaction")) {
+        console.warn("⚠️ Standalone MongoDB detected. Falling back to non-transactional updates.");
+        
+        post.boosted = true;
+        post.boostPlan = boostPlan;
+        post.boostType = boostPlan; // backward compat
+        post.boostExpiresAt = expiresAt;
+        post.boostRank = config.rank;
+        await post.save();
+
+        if (config.isFree && userId) {
+          await User.findByIdAndUpdate(userId, { hasUsedFreeBoost: true });
+        }
+        transactionCommitted = true;
+      } else {
+        throw txError;
+      }
     }
 
     // City notifications for Pro & Premium

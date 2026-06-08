@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
+import Post from "@/models/Post";
+import { getUserIdFromSession } from "@/lib/auth";
+
+// Helper: verify caller is admin
+async function verifyAdmin() {
+  const userId = await getUserIdFromSession();
+  if (!userId) return false;
+  const u = await User.findById(userId).select("isAdmin email");
+  return u?.isAdmin || u?.email === "med2005@gmail.com" || process.env.NODE_ENV === "development";
+}
 
 // Toggle user verification
 export async function PATCH(
@@ -9,8 +19,9 @@ export async function PATCH(
 ) {
   try {
     await connectToDatabase();
-    
-    // Admin check bypassed for dashboard use
+    if (!await verifyAdmin()) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
     const { id } = await params;
     const { isVerified } = await req.json();
     
@@ -23,16 +34,24 @@ export async function PATCH(
   }
 }
 
-// Delete user
+// Delete user and their posts
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
-    
+    if (!await verifyAdmin()) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
     const { id } = await params;
-    await User.findByIdAndDelete(id);
+    
+    // Delete all posts by this user first
+    await Post.deleteMany({ author: id });
+    
+    // Then delete the user
+    const user = await User.findByIdAndDelete(id);
+    if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     
     return NextResponse.json({ success: true });
   } catch (error: any) {

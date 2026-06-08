@@ -3,10 +3,22 @@ import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import User from "@/models/User";
 import Business from "@/models/Business";
+import { getUserIdFromSession } from "@/lib/auth";
 
 export async function GET() {
   try {
     await dbConnect();
+
+    // Admin guard
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const currentUser = await User.findById(userId).select("isAdmin email");
+    const isAdmin = currentUser?.isAdmin || currentUser?.email === "med2005@gmail.com";
+    if (!isAdmin && process.env.NODE_ENV !== "development") {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
 
     // Fetch counts in parallel for performance
     const [
@@ -78,23 +90,21 @@ export async function GET() {
       userTrend: realUserTrend
     };
 
-    // Also fetch recent data for the lists
-    const [recentPosts, recentUsers] = await Promise.all([
+    // Also fetch all data for the lists and management tabs
+    const [allPosts, allUsers] = await Promise.all([
       Post.find({ status: { $ne: "deleted" } })
         .sort({ createdAt: -1 })
-        .limit(10)
         .populate("author", "name email"),
       User.find()
         .sort({ createdAt: -1 })
-        .limit(10)
     ]);
 
     return NextResponse.json({
       success: true,
       stats,
       data: {
-        posts: recentPosts,
-        users: recentUsers
+        posts: allPosts,
+        users: allUsers
       }
     });
   } catch (error: any) {
